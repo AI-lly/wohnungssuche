@@ -1,0 +1,41 @@
+name: NHW Apartment Checker
+
+on:
+  schedule:
+    # Runs every 15 minutes
+    - cron: '*/15 * * * *'
+  workflow_dispatch: # allows manual trigger from GitHub website
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # needed to commit seen_apartments.json back
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run apartment checker
+        env:
+          CALLMEBOT_PHONE: ${{ secrets.CALLMEBOT_PHONE }}
+          CALLMEBOT_APIKEY: ${{ secrets.CALLMEBOT_APIKEY }}
+          FILTER_CITIES: ${{ vars.FILTER_CITIES }}
+          FILTER_ROOMS: ${{ vars.FILTER_ROOMS }}
+        run: python scraper.py --once
+
+      - name: Save state (seen apartments)
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add seen_apartments.json
+          git diff --staged --quiet || git commit -m "chore: update seen apartments list"
+          git push
