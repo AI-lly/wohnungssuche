@@ -117,6 +117,7 @@ def check_for_new_apartments():
                         seen_apartments.append(uid)
                         save_seen_apartments(seen_apartments)
                         new_apartments_found = True
+                        time.sleep(3)  # Wait 3s between messages to avoid CallMeBot rate limiting
                     else:
                         print("Message sending failed. Will retry next time.")
 
