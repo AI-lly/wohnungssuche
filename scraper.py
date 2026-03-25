@@ -15,7 +15,8 @@ INTERVAL = int(os.getenv("CHECK_INTERVAL_SECONDS", "300"))
 
 # Search filters (read from .env)
 FILTER_CITIES = [c.strip().lower() for c in os.getenv("FILTER_CITIES", "frankfurt").split(",")]
-FILTER_ROOMS = [r.strip() for r in os.getenv("FILTER_ROOMS", "2").split(",")]
+_rooms_env = os.getenv("FILTER_ROOMS", "").strip()
+FILTER_ROOMS = [] if (_rooms_env == "" or _rooms_env.lower() == "all") else [r.strip() for r in _rooms_env.split(",")]  # empty/"all" = all rooms
 
 # Constants
 URL = "https://www.nhw.de/wohnungsangebote"
@@ -90,7 +91,7 @@ def check_for_new_apartments():
         
         # Check against configured filters
         city_match = any(f in city for f in FILTER_CITIES)
-        rooms_match = rooms in FILTER_ROOMS
+        rooms_match = (not FILTER_ROOMS) or (rooms in FILTER_ROOMS)  # empty = all rooms
         if city_match and rooms_match:
             # Extract apartment link
             link_elem = item.find('a', class_='immo--item--link')
